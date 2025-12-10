@@ -1,0 +1,36 @@
+name: Docker Build & Push
+
+# 触发条件：当你推送到 master/main 分支，或者手动点击按钮时触发
+on:
+  push:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 下载代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. 设置 Docker 编译环境
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. 登录 Docker Hub (需要去 Settings -> Secrets 配置账号密码)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. 构建并推送
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile  # 确保你根目录下有 Dockerfile 文件
+          push: true
+          # 务必修改下面的 your-username 为你真实的 Docker Hub 用户名
+          tags: ${{ secrets.DOCKER_USERNAME }}/fakesip:latest
